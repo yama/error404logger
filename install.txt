@@ -1,0 +1,52 @@
+
+///////////////////////////////////
+//
+//  Error 404 Logger
+//  --------------------------------
+//  version: 0.07
+//  suitable for MODx 0.9.5+
+//
+//  author: Andraz Kozelj (andraz dot kozelj at amis dot net)
+//  date created: 14.03.2007
+//
+
+
+Install notes
+=============
+
+Unpack the contents of this archive into "/assets/modules/error404logger" folder.
+
+Create a module in MODx and copy the contents of file "e404logger.module.php" into it.
+Name the module "Error 404 Logger".
+Copy the config string into "Module configuration" field and set the preferences.
+
+Create a plugin in MODx and copy the contents of file "e404logger.plugin.php" into it.
+Name the plugin "Error404Logger".
+Check the "OnPageNotFound" system event.
+
+And there you go!
+
+All 404 error (page not found) are logged in a separate table and browsable through the module.
+
+
+
+
+Changelog
+=========
+0.06
+http://modxcms.com/forums/index.php/topic,12985.msg348190.html#msg348190
+SQL injection is possible.
+
+0.03
+----
+* some minor style corrections
+* typo removed
+* added url encoding when passing urls as parameters
+
+0.02
+----
+* added HTTP_REFERER logging and module parametrization.
+
+0.01
+----
+* proof of concept release. :)

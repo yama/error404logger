@@ -157,7 +157,7 @@ $grd->columns = "IP, host, time, URL";
 if ($showReferer == 'yes') { $grd->columns .= ',referer'; };
 
 $grd->colTypes = ',,date:' . $modx->toDateFormat(null, 'formatOnly') . ' %H:%M:%S';
-if ($showReferer == 'yes') { $grd->colTypes .= ',,template:[+referer+]';};
+if ($showReferer == 'yes') { $grd->colTypes .= ',,template:<a href="[+referer+]" target="_blank">[+referer+]</a>';};
 
 $grd->fields = "ip,host,createdon,url";
 if ($showReferer == 'yes') { $grd->fields.= ',template';};

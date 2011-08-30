@@ -3,7 +3,7 @@
 //
 //  Error 404 Logger
 //  --------------------------------
-//  version: 0.07
+//  version: 0.08
 //  suitable for MODx 0.9.5+
 //
 //  author: Andraz Kozelj (andraz dot kozelj at amis dot net)

@@ -147,4 +147,24 @@ var $tableNameModx;
 		$value = htmlentities($value, ENT_QUOTES, mb_internal_encoding());
 		return $value;
 	}
+	
+	function purge_log($limit=1000,$trim=100)
+	{
+		global $modx;
+		
+		if($limit < $trim) $trim = $limit;
+		
+		$tbl_logs404 = $this->tableNameModx;
+		$sql = 'SELECT COUNT(id) as count FROM ' . $tbl_logs404;
+		$rs = $modx->db->query($sql);
+		if($rs) $row = $modx->db->getRow($rs);
+		$over = $row['count'] - $limit;
+		if($over > 0)
+		{
+			$sql = 'DELETE FROM ' . $tbl_logs404 . ' LIMIT ' . ($over + $trim);
+			$modx->db->query($sql);
+			$sql = 'OPTIMIZE TABLE ' . $tbl_logs404;
+			$modx->db->query($sql);
+		}
+	}
 }

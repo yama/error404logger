@@ -2,7 +2,7 @@
 //
 //  Error 404 Logger
 //  --------------------------------
-//  module version: 0.07
+//  module version: 0.09
 //  suitable for MODx 0.9.5+
 //
 //  author: Andraz Kozelj (andraz dot kozelj at amis dot net)
@@ -26,77 +26,11 @@ include_once(MODX_BASE_PATH . 'manager/includes/controls/datagrid.class.php');
 global $modx, $modx_manager_charset, $modx_lang_attribute, $modx_textdir, $manager_theme, $_style, $_lang;
 
 $src = get_tpl();
-$ph = get_ph();
+$values['keepLastDays'] = $keepLastDays;
+$ph = get_ph($values);
 $output = parse_tpl($src,$ph);
 
-$output .= 'var  queryString = "?a='.$_GET['a'].'&id='.$_GET['id'].'";
-
-function navAllInactive() {
-oNav = document.getElementById("nav");
-oLis = oNav.getElementsByTagName("LI");
-
-for (i = 0; i < oLis.length; i++) {
-oLis[i].className = "";
-}
-}
-
-function hideAllData() {
-oData = document.getElementById("data");
-oDivs = oData.getElementsByTagName("DIV");
-
-for (i = 0; i < oDivs.length; i++) {
-oDivs[i].style.display = "none";
-}
-}
-
-function showData(ime) {
-hideAllData();
-navAllInactive();
-
-o = document.getElementById("li-"+ime);
-o.className = "active";
-o = document.getElementById("activeTab");
-o.value = ime;
-
-oData = document.getElementById(ime);
-oData.style.display = "block";
-
-return false;
-}
-
-function doRemove(url) {
-if (confirm("Really delete entries for \'"+url+"\'?")) {
-url = escape(url);
-window.location = "'.$_SERVER['SCRIPT_NAME'].'"+queryString+"&tab=top&do=remove&url="+url;
-}
-return false;
-}
-
-function clearAll() {
-o = document.getElementById("activeTab");  
-if (confirm("Really delete ALL entries?")) {
-window.location = "'.$_SERVER['SCRIPT_NAME'].'"+queryString+"&tab="+o.value+"&do=clearAll";
-}
-return false;
-}
-
-function clearLast(num) {
-o = document.getElementById("activeTab");  
-if (confirm("Really delete all entries except for the last "+num+" days?")) {
-window.location = "'.$_SERVER['SCRIPT_NAME'].'"+queryString+"&tab="+o.value+"&do=clearLast&days="+num;
-}
-return false;
-}
-
-</script>
-
-</head>
-<body>
-<h1>Error 404 Logger</h1>
-<script type="text/javascript" src="media/script/tabpane.js"></script>
-<div class="sectionHeader">Error 404 Logger</div>
-<div class="sectionBody" style="padding:10px 20px;">
-<input type="hidden" id="activeTab" value="">
+$output .= '
 <div id="menuDiv">
 <ul id="menu">
 <li onclick="clearAll();">' . $_lang["clear_log"] . '</li>
@@ -121,25 +55,27 @@ $action = (empty($_GET['do'])) ? '' : $_GET['do'];
 // remove single URL from list
 if ($action == "remove")
 {
-$url = (empty($_GET['url'])) ? '' : $_GET['url'];
-if ($url != "")
-{
-$e404->remove($url);
-}
+	$url = (empty($_GET['url'])) ? '' : $_GET['url'];
+	if ($url != "")
+	{
+		$e404->remove($url);
+	}
 }
 
 // clear all data
 if ($action == "clearAll")
 {
-$e404->clearAll();
+	$e404->clearAll();
 }
 
 // clear data except for last N days
-if ($action == "clearLast") {
-$days = (empty($_GET['days'])) ? '' : $_GET['days'];
-if ($url != "") {
-$e404->clearLast($days);
-}
+if ($action == "clearLast")
+{
+	$days = (empty($_GET['days'])) ? '' : $_GET['days'];
+	if ($url != "")
+	{
+		$e404->clearLast($days);
+	}
 }
 
 // create grid with all data
@@ -157,7 +93,7 @@ $grd->columns = "IP, host, time, URL";
 if ($showReferer == 'yes') { $grd->columns .= ',referer'; };
 
 $grd->colTypes = ',,date:' . $modx->toDateFormat(null, 'formatOnly') . ' %H:%M:%S';
-if ($showReferer == 'yes') { $grd->colTypes .= ',template:<a href="[+url+]" target="_blank">[+url+]</a>,template:<a href="[+referer+]" target="_blank">[+referer+]</a>';};
+if ($showReferer == 'yes') { $grd->colTypes .= ',template:<a href="[+url+]" target="_blank">[+url+]</a>,template:<a href="' . $modx->config['site_url'] . '?e404_redirect=[+referer+]" target="_blank">[+referer+]</a>';};
 
 $grd->fields = "ip,host,createdon,url";
 if ($showReferer == 'yes') { $grd->fields.= ',template';};
@@ -226,6 +162,81 @@ function get_tpl()
 <link rel="stylesheet" type="text/css" href="[+theme_path+]/style.css" />
 <title>Error 404 Logger</title>
 <script type="text/javascript" language="javascript">
+var  queryString = "?a=[+_GET_a+]&id=[+_GET_id+]";
+function navAllInactive()
+{
+	oNav = document.getElementById("nav");
+	oLis = oNav.getElementsByTagName("LI");
+	
+	for (i = 0; i < oLis.length; i++)
+	{
+		oLis[i].className = "";
+	}
+}
+
+function hideAllData()
+{
+	oData = document.getElementById("data");
+	oDivs = oData.getElementsByTagName("DIV");
+	
+	for (i = 0; i < oDivs.length; i++)
+	{
+		oDivs[i].style.display = "none";
+	}
+}
+
+function showData(ime)
+{
+	hideAllData();
+	navAllInactive();
+	
+	o = document.getElementById("li-"+ime);
+	o.className = "active";
+	o = document.getElementById("activeTab");
+	o.value = ime;
+	
+	oData = document.getElementById(ime);
+	oData.style.display = "block";
+	
+	return false;
+}
+function doRemove(url)
+{
+	if (confirm("Really delete entries for \'"+url+"\'?"))
+	{
+		url = escape(url);
+		window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&tab=top&do=remove&url="+url;
+	}
+	return false;
+}
+
+function clearAll()
+{
+	o = document.getElementById("activeTab");  
+	if (confirm("Really delete ALL entries?"))
+	{
+		window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&tab="+o.value+"&do=clearAll";
+	}
+	return false;
+}
+
+function clearLast(num)
+{
+	o = document.getElementById("activeTab");  
+	if (confirm("Really delete all entries except for the last "+num+" days?"))
+	{
+		window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&tab="+o.value+"&do=clearLast&days="+num;
+	}
+	return false;
+}
+</script>
+</head>
+<body>
+<h1>Error 404 Logger</h1>
+<script type="text/javascript" src="media/script/tabpane.js"></script>
+<div class="sectionHeader">Error 404 Logger</div>
+<div class="sectionBody" style="padding:10px 20px;">
+<input type="hidden" id="activeTab" value="">
 EOT;
 	return $tpl;
 }
@@ -239,6 +250,9 @@ function get_ph()
 	$ph['charset'] = $modx_manager_charset;
 	$ph['site_url'] = MODX_SITE_URL;
 	$ph['theme_path'] = MODX_MANAGER_URL . 'media/style/' . $manager_theme;
+	$ph['_GET_a']  = $_GET['a'];
+	$ph['_GET_id'] = $_GET['id'];
+	$ph['_SERVER_SCRIPT_NAME'] = $_SERVER['SCRIPT_NAME'];
 	return $ph;
 }
 

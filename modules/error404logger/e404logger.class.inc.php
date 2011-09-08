@@ -33,7 +33,7 @@ var $tableNameModx;
 		global $modx;
 		$table = $this->tableNameModx;
 		
-		$sql = "CREATE TABLE ".$this->tableNameModx." (
+		$sql = "CREATE TABLE IF NOT EXISTS ".$this->tableNameModx." (
 		`id` int(10) unsigned NOT NULL auto_increment,
 		`createdon` datetime NOT NULL,
 		`ip` varchar(20) NOT NULL,
@@ -52,21 +52,14 @@ var $tableNameModx;
 		global $modx;
 		$table = $this->tableNameModx;
 		
-		$rs = $modx->db->query("DESC {$table}");
-		if(!$rs)
+		$this->createTable($table);
+		
+		$metaData = $modx->db->getTableMetaData($table);
+		// version 0.02
+		if ($metaData['referer'] == '')
 		{
-			return $this->createTable($table);
-		}
-		else
-		{
-			$metaData = $modx->db->getTableMetaData($table);
-			
-			// version 0.02
-			if ($metaData['referer'] == '')
-			{
-				$sql = "ALTER TABLE {$table} ADD COLUMN `referer` varchar(200) NULL AFTER `host`";
-				return $res = $modx->db->query($sql);
-			}
+			$sql = "ALTER TABLE {$table} ADD COLUMN `referer` varchar(200) NULL AFTER `host`";
+			return $res = $modx->db->query($sql);
 		}
 	}
 	

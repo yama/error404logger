@@ -138,6 +138,7 @@ var $tableNameModx;
 		
 		$value = $modx->db->escape($value);
 		$value = htmlentities($value, ENT_QUOTES, mb_internal_encoding());
+		$value = str_replace('&amp;', '&', $value);
 		return $value;
 	}
 	

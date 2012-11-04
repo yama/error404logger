@@ -14,6 +14,7 @@
 //
 
 // config parameters
+global $keepLastDays;
 $showReferer = isset($showReferer) ? $showReferer : 'yes';
 $keepLastDays = isset($keepLastDays) ? $keepLastDays : 7;
 $resultsPerPage = isset($resultsPerPage) ? $resultsPerPage : 20;
@@ -28,54 +29,28 @@ global $modx, $modx_manager_charset, $modx_lang_attribute, $modx_textdir, $manag
 $src = get_tpl();
 $values['keepLastDays'] = $keepLastDays;
 $ph = get_ph($values);
-$output = parse_tpl($src,$ph);
-
-$output .= '
-<div id="menuDiv">
-<ul id="menu">
-<li onclick="clearAll();">' . $_lang["clear_log"] . '</li>
-<li onclick="clearLast('.$keepLastDays.');">' . $_lang["clear_log"] . ' recent '.$keepLastDays.' days</li>
-<li class="close" onclick="window.location=\'index.php?a=106\'">' . $_lang['close'] . '</li>
-</ul>
-</div>
-<div id="nav">
-<ul>
-<li onclick="showData(\'all\');" id="li-all">All entries</li>
-<li id="li-top" onclick="showData(\'top\');">Most wanted</li>
-</ul>
-</div>
-<div id="data">';
 
 $e404 = new Error404Logger();
 
 // check if there is something to do
 $action = '';
-$action = (empty($_GET['do'])) ? '' : $_GET['do'];
+if(isset($_GET['do']) && !empty($_GET['do'])) $action = $_GET['do'];
 
-// remove single URL from list
-if ($action == "remove")
+switch($action)
 {
-	$url = (empty($_GET['url'])) ? '' : $_GET['url'];
-	if ($url != "")
-	{
-		$e404->remove($url);
-	}
-}
-
-// clear all data
-if ($action == "clearAll")
-{
-	$e404->clearAll();
-}
-
-// clear data except for last N days
-if ($action == "clearLast")
-{
-	$days = (empty($_GET['days'])) ? '' : $_GET['days'];
-	if ($url != "")
-	{
-		$e404->clearLast($days);
-	}
+	case 'remove'   : // remove single URL from list
+		if(isset($_GET['url']) && !empty($_GET['url'])) $e404->remove($_GET['url']);
+		break;
+	case 'clearAll' : // clear all data
+		$e404->clearAll();
+		break;
+	case 'clearLast': // clear data except for last N days
+		if(isset($_GET['days']) && !empty($_GET['days']))
+		{
+			$days = (!isset($_GET['days']) || empty($_GET['days'])) ? '' : $_GET['days'];
+			$e404->clearLast($days);
+		}
+		break;
 }
 
 // create grid with all data
@@ -90,33 +65,29 @@ $grd->altItemClass = "gridAltItem";
 $grd->pagerClass = "pager";
 $grd->Class = "page";
 $grd->columns = "IP, host, time, URL";
-if ($showReferer == 'yes') { $grd->columns .= ',referer'; };
 
 $grd->colTypes = ',,date:' . $modx->toDateFormat(null, 'formatOnly') . ' %H:%M:%S';
-if ($showReferer == 'yes') { $grd->colTypes .= ',template:<a href="[+url+]" target="_blank">[+url+]</a>,template:<a href="' . $modx->config['site_url'] . '?e404_redirect=[+referer+]" target="_blank">[+referer+]</a>';};
+$grd->colTypes .= ',template:<a href="[+url+]" target="_blank">[+url+]</a>';
 
 $grd->fields = "ip,host,createdon,url";
-if ($showReferer == 'yes') { $grd->fields.= ',template';};
 
-$grd->pagerLocation = "top-left";
-
-
-$output .= '<div id="all" style="display: none;">';
-$output .= $grd->render();
-$output .= '</div>';
-$output .= '<div id="top" style="display: none;">';
-
-
-// create most wanted grid
-$res = $e404->getTop($showTop);
-$howMany = $showTop == 0 ? 99999 : $showTop;
-
-if ($showTop != 0) { 
-$output .= "Showing top ".$howMany."<br /> <br />";
-} else {
-$output .= "Showing all<br /> <br />";
+if ($showReferer == 'yes')
+{
+	$grd->columns  .= ',referer';
+	$grd->colTypes .= ',template:<a href="' . $modx->config['site_url'] . 'index.php?e404_redirect=[+referer+]" target="_blank">[+referer+]</a>';
+	$grd->fields   .= ',template';
 }
 
+$grd->pagerLocation = 'top-left';
+
+$ph['logs'] = $grd->render();
+
+// create most wanted grid
+$howMany = $showTop == 0 ? 99999 : $showTop;
+
+$ph['showing'] = ($showTop != 0) ? "<p>Showing top {$howMany}</p>" : '<p>Showing all</p>';
+
+$res = $e404->getTop($showTop);
 $grd = new DataGrid('', $res, $howMany);
 
 $grd->noRecordMsg = 'There are no Error 404 entries! Good for you...';
@@ -129,23 +100,9 @@ $grd->colTypes = 'template:<a class="red" href="#" onclick="doRemove(\'[+url+]\'
 $grd->fields = "template,num,url";
 $grd->pagerLocation = "top-left";
 
-$output .= $grd->render();
-if(empty($_GET['tab'])) $_GET['tab'] ='';
+$ph['showtop'] = $grd->render();
 
-$output .= '</div>';
-$output .= '
-
-<script language="javascript" type="text/javascript">
-var tab = "'.$_GET['tab'].'";
-if (tab == "") {
-showData(\'all\');
-} else {
-showData(tab);
-}
-
-</script>
-</body>
-</html>';
+$output = parse_tpl($src,$ph);
 
 return $output;
 
@@ -153,6 +110,7 @@ return $output;
 
 function get_tpl()
 {
+	$tab = (isset($_GET['tab']) && !empty($_GET['tab'])) ? $_GET['tab'] : '';
 	$tpl = <<< EOT
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" [+dir+] lang="[+mxla+]" xml:lang="[+mxla+]">
@@ -162,88 +120,89 @@ function get_tpl()
 <link rel="stylesheet" type="text/css" href="[+theme_path+]/style.css" />
 <title>Error 404 Logger</title>
 <script type="text/javascript" language="javascript">
-var  queryString = "?a=[+_GET_a+]&id=[+_GET_id+]";
-function navAllInactive()
-{
-	oNav = document.getElementById("nav");
-	oLis = oNav.getElementsByTagName("LI");
+	var  queryString = "?a=[+_GET_a+]&id=[+_GET_id+]";
 	
-	for (i = 0; i < oLis.length; i++)
+	function navAllInactive()
 	{
-		oLis[i].className = "";
+		oNav = document.getElementById("nav");
+		oLis = oNav.getElementsByTagName("LI");
+		
+		for (i = 0; i < oLis.length; i++)
+		{
+			oLis[i].className = "";
+		}
 	}
-}
-
-function hideAllData()
-{
-	oData = document.getElementById("data");
-	oDivs = oData.getElementsByTagName("DIV");
 	
-	for (i = 0; i < oDivs.length; i++)
+	function hideAllData()
 	{
-		oDivs[i].style.display = "none";
+		oData = document.getElementById("data");
+		oDivs = oData.getElementsByTagName("DIV");
+		
 	}
-}
-
-function showData(ime)
-{
-	hideAllData();
-	navAllInactive();
 	
-	o = document.getElementById("li-"+ime);
-	o.className = "active";
-	o = document.getElementById("activeTab");
-	o.value = ime;
+	function doRemove(url)
+	{
+		if (confirm("Really delete entries for '" + url + "'?"))
+		{
+			url = escape(url);
+			window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&tab=top&do=remove&url="+url;
+		}
+		return false;
+	}
 	
-	oData = document.getElementById(ime);
-	oData.style.display = "block";
+	function clearAll()
+	{
+		if (confirm("Really delete ALL entries?"))
+		{
+			window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&do=clearAll";
+		}
+		return false;
+	}
 	
-	return false;
-}
-function doRemove(url)
-{
-	if (confirm("Really delete entries for \'"+url+"\'?"))
+	function clearLast(num)
 	{
-		url = escape(url);
-		window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&tab=top&do=remove&url="+url;
+		if (confirm("Really delete all entries except for the last "+num+" days?"))
+		{
+			window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&do=clearLast&days="+num;
+		}
+		return false;
 	}
-	return false;
-}
-
-function clearAll()
-{
-	o = document.getElementById("activeTab");  
-	if (confirm("Really delete ALL entries?"))
-	{
-		window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&tab="+o.value+"&do=clearAll";
-	}
-	return false;
-}
-
-function clearLast(num)
-{
-	o = document.getElementById("activeTab");  
-	if (confirm("Really delete all entries except for the last "+num+" days?"))
-	{
-		window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&tab="+o.value+"&do=clearLast&days="+num;
-	}
-	return false;
-}
 </script>
 </head>
 <body>
 <h1>Error 404 Logger</h1>
-<script type="text/javascript" src="media/script/tabpane.js"></script>
-<div class="sectionHeader">Error 404 Logger</div>
-<div class="sectionBody" style="padding:10px 20px;">
-<input type="hidden" id="activeTab" value="">
+<div class="sectionBody">
+	<div id="actions">
+		<ul class="actionButtons">
+		<li onclick="clearAll();"><a href="#">[+_lang_clear_log+]</a></li>
+		<li onclick="clearLast([+keepLastDays+]);"><a href="#">[+_lang_clear_log+] recent [+keepLastDays+] days</a></li>
+		</ul>
+	</div>
+	<div class="tab-pane" id="pane1">
+	<script type="text/javascript" src="media/script/tabpane.js"></script>
+	<script type="text/javascript"> pane1 = new WebFXTabPane(document.getElementById("pane1"),false); </script>
+		<div class="tab-page" id="all">
+			<h2 class="tab">All entries</h2>
+			<script type="text/javascript">pane1.addTabPage(document.getElementById("all"));</script>
+			[+logs+]
+		</div>
+		<div class="tab-page" id="top">
+			<h2 class="tab">Most wanted</h2>
+			<script type="text/javascript">pane1.addTabPage(document.getElementById("top"));</script>
+			<div>[+showing+]</div>
+			[+showtop+]
+		</div>
+	</div>
+</div>
+</body>
+</html>
 EOT;
 	return $tpl;
 }
 
 function get_ph()
 {
-	global $modx,$modx_textdir,$modx_lang_attribute,$modx_manager_charset,$manager_theme;
+	global $modx,$modx_textdir,$modx_lang_attribute,$modx_manager_charset,$manager_theme,$_lang,$keepLastDays;
 	
 	$ph['dir'] = $modx_textdir ? 'dir="rtl" ' : '';
 	$ph['mxla'] = $modx_lang_attribute ? $modx_lang_attribute : 'en';
@@ -253,6 +212,8 @@ function get_ph()
 	$ph['_GET_a']  = $_GET['a'];
 	$ph['_GET_id'] = $_GET['id'];
 	$ph['_SERVER_SCRIPT_NAME'] = $_SERVER['SCRIPT_NAME'];
+	$ph['_lang_clear_log'] = $_lang['clear_log'];
+	$ph['keepLastDays'] = $keepLastDays;
 	return $ph;
 }
 

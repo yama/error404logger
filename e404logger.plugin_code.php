@@ -20,7 +20,7 @@ $robots         = (empty($robots))         ? 'googlebot,baidu,msnbot' : $robots;
 if(empty($limit)) $limit = 1000;
 if(empty($trim))  $trim = 100;
 
-$e = & $modx->Event;
+$e = & $modx->event;
 
 if($e->name=='OnWebPageInit' && isset($_SESSION['mgrValidated']))
 {
@@ -30,7 +30,7 @@ if($e->name=='OnWebPageInit' && isset($_SESSION['mgrValidated']))
 		$entities = array('%21', '%2A', '%27', '%28', '%29', '%3B', '%3A', '%40', '%26', '%3D', '%2B', '%24', '%2C', '%2F', '%3F', '%25', '%23', '%5B', '%5D');
 		$replacements = array('!', '*', "'", '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '%', '#', '[', ']');
 		$url = str_replace($entities, $replacements, urlencode($url));
-		header('Refresh: 1; URL=' . $url);
+		header('Refresh: 0.5; URL=' . $url);
 	}
 	return;
 }

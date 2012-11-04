@@ -87,6 +87,8 @@ div#data {
   background-color: #dddddd;
 	padding-right: 0.5em;
 	padding-left: 0.5em;
+	word-wrap:break-word;
+	word-break: break-all;
 }
 .gridAltItem {
   background-color: #eeeeee;

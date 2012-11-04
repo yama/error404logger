@@ -14,16 +14,14 @@
 class Error404Logger {
 
 // set table name
-var $tableName;
-var $tableNameModx;
+var $tbl_error_404_logger;
 
 	// constructor
 	function Error404Logger()
 	{
 		global $modx;
 		
-		$this->tableName = 'error_404_logger';
-		$this->tableNameModx = $modx->getFullTableName($this->tableName);
+		$this->tbl_error_404_logger = $modx->getFullTableName('error_404_logger');
 		return $this->checkTable();
 	}
 	
@@ -31,9 +29,9 @@ var $tableNameModx;
 	function createTable()
 	{
 		global $modx;
-		$table = $this->tableNameModx;
+		$tbl_error_404_logger = $this->tbl_error_404_logger;
 		
-		$sql = "CREATE TABLE IF NOT EXISTS ".$this->tableNameModx." (
+		$sql = "CREATE TABLE IF NOT EXISTS ".$tbl_error_404_logger." (
 		`id` int(10) unsigned NOT NULL auto_increment,
 		`createdon` datetime NOT NULL,
 		`ip` varchar(20) NOT NULL,
@@ -50,15 +48,15 @@ var $tableNameModx;
 	function checkTable()
 	{
 		global $modx;
-		$table = $this->tableNameModx;
+		$tbl_error_404_logger = $this->tbl_error_404_logger;
 		
-		$this->createTable($table);
+		$this->createTable($tbl_error_404_logger);
 		
-		$metaData = $modx->db->getTableMetaData($table);
+		$metaData = $modx->db->getTableMetaData($tbl_error_404_logger);
 		// version 0.02
 		if ($metaData['referer'] == '')
 		{
-			$sql = "ALTER TABLE {$table} ADD COLUMN `referer` varchar(200) NULL AFTER `host`";
+			$sql = "ALTER TABLE {$tbl_error_404_logger} ADD COLUMN `referer` varchar(200) NULL AFTER `host`";
 			return $res = $modx->db->query($sql);
 		}
 	}
@@ -67,9 +65,9 @@ var $tableNameModx;
 	function getTop($num = 0)
 	{
 		global $modx;
-		$table = $this->tableNameModx;
+		$tbl_error_404_logger = $this->tbl_error_404_logger;
 		
-		$sql = "SELECT distinct(url), count(url) AS num FROM {$table} GROUP BY url ORDER BY num DESC ";
+		$sql = "SELECT distinct(url), count(url) AS num FROM {$tbl_error_404_logger} GROUP BY url ORDER BY num DESC ";
 		if ($num != 0) {$sql .= "LIMIT {$num}";};
 		$res = $modx->db->query($sql);
 		return $res;
@@ -79,9 +77,9 @@ var $tableNameModx;
 	function getAll()
 	{
 		global $modx;
-		$table = $this->tableNameModx;
+		$tbl_error_404_logger = $this->tbl_error_404_logger;
 		
-		$res = $modx->db->query("SELECT * FROM {$table} ORDER BY createdon DESC");
+		$res = $modx->db->select('*', $tbl_error_404_logger, '', 'createdon DESC');
 		return $res;
 	}
 	
@@ -89,7 +87,7 @@ var $tableNameModx;
 	function insert()
 	{
 		global $modx;
-		$table = $this->tableNameModx;
+		$tbl_error_404_logger = $this->tbl_error_404_logger;
 		
 		$url       = $this->fix_xss_value($_SERVER["REQUEST_URI"]);
 		$ip        = $_SERVER["REMOTE_ADDR"];
@@ -97,38 +95,38 @@ var $tableNameModx;
 		$host      = gethostbyaddr($ip);
 		$referer   = $this->fix_xss_value($_SERVER["HTTP_REFERER"]);
 		$createdon = date('Y-m-d H:i:s',time());
-		
-		$modx->db->query("INSERT INTO {$table} (url, ip, host, referer, createdon) VALUES ('{$url}','{$ip}','{$host}','{$referer}','$createdon')");
-		return $modx->db->getInsertId();
+		$f = compact('url', 'ip', 'host', 'referer', 'createdon');
+		$newid = $modx->db->insert($f, $tbl_error_404_logger);
+		return $newid;
 	}
 	
 	// remove specific url from entries
 	function remove($url)
 	{
 		global $modx;
-		$table = $this->tableNameModx;
+		$tbl_error_404_logger = $this->tbl_error_404_logger;
 		
 		$url = urldecode($url);
-		$modx->db->query("DELETE FROM {$table} WHERE url = '".$url."'");
+		$modx->db->query("DELETE FROM {$tbl_error_404_logger} WHERE url = '".$url."'");
 		return $modx->db->getAffectedRows();
 	}
 	
 	function clearAll()
 	{
 		global $modx;
-		$table = $this->tableNameModx;
+		$tbl_error_404_logger = $this->tbl_error_404_logger;
 		
-		$modx->db->query("DELETE FROM {$table}");
+		$modx->db->delete($tbl_error_404_logger);
 		return $modx->db->getAffectedRows();
 	}
 	
 	function clearLast($num)
 	{
 		global $modx;
-		$table = $this->tableNameModx;
+		$tbl_error_404_logger = $this->tbl_error_404_logger;
 		
 		$datum = time() - $num * 3600 * 24 ;
-		$modx->db->query("DELETE FROM {$table} WHERE UNIX_TIMESTAMP(createdon) < {$datum}");
+		$modx->db->delete($tbl_error_404_logger, "UNIX_TIMESTAMP(createdon) < {$datum}");
 		return $modx->db->getAffectedRows();
 	}
 	
@@ -148,17 +146,14 @@ var $tableNameModx;
 		
 		if($limit < $trim) $trim = $limit;
 		
-		$tbl_logs404 = $this->tableNameModx;
-		$sql = 'SELECT COUNT(id) as count FROM ' . $tbl_logs404;
-		$rs = $modx->db->query($sql);
+		$tbl_error_404_logger = $this->tbl_error_404_logger;
+		$rs = $modx->db->select('COUNT(id) as count',$tbl_error_404_logger);
 		if($rs) $row = $modx->db->getRow($rs);
 		$over = $row['count'] - $limit;
 		if($over > 0)
 		{
-			$sql = 'DELETE FROM ' . $tbl_logs404 . ' LIMIT ' . ($over + $trim);
-			$modx->db->query($sql);
-			$sql = 'OPTIMIZE TABLE ' . $tbl_logs404;
-			$modx->db->query($sql);
+			$modx->db->delete($tbl_error_404_logger,'createdon ASC','',$over + $trim);
+			$modx->db->query("OPTIMIZE TABLE {$tbl_error_404_logger}");
 		}
 	}
 }

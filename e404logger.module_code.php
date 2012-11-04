@@ -2,7 +2,7 @@
 //
 //  Error 404 Logger
 //  --------------------------------
-//  module version: 0.09
+//  module version: 0.1
 //  suitable for MODx 0.9.5+
 //
 //  author: Andraz Kozelj (andraz dot kozelj at amis dot net)

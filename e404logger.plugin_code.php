@@ -31,6 +31,7 @@ if($e->name=='OnWebPageInit' && isset($_SESSION['mgrValidated']))
 		$replacements = array('!', '*', "'", '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '%', '#', '[', ']');
 		$url = str_replace($entities, $replacements, urlencode($url));
 		header('Refresh: 0.5; URL=' . $url);
+		exit;
 	}
 	return;
 }

@@ -3,7 +3,7 @@
 //
 //  Error 404 Logger
 //  --------------------------------
-//  class version: 0.1
+//  class version: 0.07
 //  suitable for MODx 0.9.5+
 //
 //  author     : Andraz Kozelj (andraz dot kozelj at amis dot net)
@@ -152,7 +152,7 @@ var $tbl_error_404_logger;
 		$over = $row['count'] - $limit;
 		if($over > 0)
 		{
-			$modx->db->delete($tbl_error_404_logger,'createdon ASC','',$over + $trim);
+			$modx->db->delete($tbl_error_404_logger,'', 'createdon ASC', $over + $trim);
 			$modx->db->query("OPTIMIZE TABLE {$tbl_error_404_logger}");
 		}
 	}

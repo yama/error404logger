@@ -55,7 +55,7 @@ switch($action)
 
 // create grid with all data
 $res = $e404->getAll();
-
+$urldecode = (isset($modx->config['enable_phx']) && $modx->config['enable_phx']!=0) ? ':urldecode' : '';
 $grd = new DataGrid('', $res, $resultsPerPage);
 $grd->noRecordMsg = 'There are no Error 404 entries! Good for you...';
 $grd->cssClass = "grid";
@@ -67,14 +67,14 @@ $grd->Class = "page";
 $grd->columns = "IP, host, time, URL";
 
 $grd->colTypes = ',,date:' . $modx->toDateFormat(null, 'formatOnly') . ' %H:%M:%S';
-$grd->colTypes .= ',template:<a href="[+url+]" target="_blank">[+url+]</a>';
+$grd->colTypes .= ',template:<a href="[+url+]" target="_blank">[+url' . $urldecode . '+]</a>';
 
 $grd->fields = "ip,host,createdon,url";
 
 if ($showReferer == 'yes')
 {
 	$grd->columns  .= ',referer';
-	$grd->colTypes .= ',template:<a href="' . $modx->config['site_url'] . 'index.php?e404_redirect=[+referer+]" target="_blank">[+referer+]</a>';
+	$grd->colTypes .= ',template:<a href="' . $modx->config['site_url'] . 'index.php?e404_redirect=[+referer+]" target="_blank">[+referer' . $urldecode . '+]</a>';
 	$grd->fields   .= ',template';
 }
 

@@ -96,7 +96,7 @@ $grd->columnHeaderClass = "gridHeader";
 $grd->itemClass = "gridItem";
 $grd->altItemClass = "gridAltItem";
 $grd->columns = ",count,URL";
-$grd->colTypes = 'template:<a class="red" href="#" onclick="doRemove(\'[+url+]\'); return false;">Remove</a>,integer';
+$grd->colTypes = 'template:<a class="red" href="#" onclick="doRemove(\'[+url+]\'); return false;">Remove</a>,integer,template:[+url' . $urldecode . '+]';
 $grd->fields = "template,num,url";
 $grd->pagerLocation = "top-left";
 

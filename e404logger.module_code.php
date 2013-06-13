@@ -73,9 +73,8 @@ $grd->fields = "ip,host,createdon,url";
 
 if ($showReferer == 'yes')
 {
-	$grd->columns  .= ',referer';
-	$grd->colTypes .= ',template:<a href="' . $modx->config['site_url'] . 'index.php?e404_redirect=[+referer+]" target="_blank">[+referer' . $urldecode . '+]</a>';
-	$grd->fields   .= ',template';
+	$grd->columns  .= '/referer';
+	$grd->colTypes .= '<br /><a href="' . $modx->config['site_url'] . 'index.php?e404_redirect=[+referer+]" target="_blank">[+referer' . $urldecode . '+]</a>';
 }
 
 $grd->pagerLocation = 'top-left';

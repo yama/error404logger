@@ -204,7 +204,7 @@ function get_ph()
 {
 	global $modx,$modx_textdir,$modx_lang_attribute,$modx_manager_charset,$manager_theme,$_lang,$keepLastDays;
 	
-	$ph['dir'] = $modx_textdir ? 'dir="rtl" ' : '';
+	$ph['dir'] = ($modx_textdir && $modx_textdir==='rtl') ? 'dir="rtl" ' : '';
 	$ph['mxla'] = $modx_lang_attribute ? $modx_lang_attribute : 'en';
 	$ph['charset'] = $modx_manager_charset;
 	$ph['site_url'] = MODX_SITE_URL;

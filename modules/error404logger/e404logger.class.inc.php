@@ -84,13 +84,18 @@ var $tbl_error_404_logger;
 	}
 	
 	// add 404 query
-	function insert()
+	function insert($remoteIPIndexName='')
 	{
 		global $modx;
 		$tbl_error_404_logger = $this->tbl_error_404_logger;
 		
 		$url       = $this->fix_xss_value($_SERVER["REQUEST_URI"]);
-		$ip        = $_SERVER["REMOTE_ADDR"];
+		if( !empty($remoteIPIndexName) && isset($_SERVER[$remoteIPIndexName]) )
+		{
+			$ip = $_SERVER[$remoteIPIndexName];
+		}else{
+			$ip = $_SERVER["REMOTE_ADDR"];
+		}
 		//	$ip = long2ip($ip);
 		$host      = gethostbyaddr($ip);
 		$referer   = $this->fix_xss_value($_SERVER["HTTP_REFERER"]);

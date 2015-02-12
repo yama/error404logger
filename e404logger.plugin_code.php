@@ -11,7 +11,7 @@
  * @author      yama (http://kyms.jp)
  * @internal    @events        OnPageNotFound, OnWebPageInit
  * @internal    @modx_category Manager and Admin
- * @internal    @properties &found_ref_only=Found ref only;list;yes,no;yes &count_robots=Robots count;list;yes,no;no; &robots=Robots list;text;googlebot,baidu,msnbot;&limit=Number of limit logs;1000 &trim=Number deleted at a time;100
+ * @internal    @properties &found_ref_only=Found ref only;list;yes,no;yes &count_robots=Robots count;list;yes,no;no; &robots=Robots list;text;googlebot,baidu,msnbot;&limit=Number of limit logs;1000 &trim=Number deleted at a time;100 &remoteIPIndexName=RemoteIP Index Name;text;REMOTE_ADDR
  */
 
 $found_ref_only = (empty($found_ref_only)) ? 'no' : $found_ref_only;
@@ -50,7 +50,7 @@ elseif($e->name=='OnPageNotFound'  && !isset($_SESSION['mgrValidated']))
 	include_once($modx->config['base_path'] . 'assets/modules/error404logger/e404logger.class.inc.php');
 	$e404 = new Error404Logger();
 	
-	$e404->insert();
+	$e404->insert($remoteIPIndexName);
 	$e404->purge_log($limit,$trim);
 }
 else return;

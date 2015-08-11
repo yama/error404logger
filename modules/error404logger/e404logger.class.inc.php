@@ -93,6 +93,7 @@ var $tbl_error_404_logger;
 		if( !empty($remoteIPIndexName) && isset($_SERVER[$remoteIPIndexName]) )
 		{
 			$ip = $_SERVER[$remoteIPIndexName];
+			$ip = preg_replace('/.*[, ]([^, ]+)\z/','$1',$ip); //For multi stairs proxy
 		}else{
 			$ip = $_SERVER["REMOTE_ADDR"];
 		}

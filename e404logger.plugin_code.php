@@ -24,16 +24,14 @@ $e = & $modx->event;
 
 if($e->name=='OnWebPageInit' && isset($_SESSION['mgrValidated']))
 {
-    if($_GET['e404_redirect'])
-    {
-        $url = $_GET['e404_redirect'];
-        $entities = array('%21', '%2A', '%27', '%28', '%29', '%3B', '%3A', '%40', '%26', '%3D', '%2B', '%24', '%2C', '%2F', '%3F', '%25', '%23', '%5B', '%5D');
-        $replacements = array('!', '*', "'", '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '%', '#', '[', ']');
-        $url = str_replace($entities, $replacements, urlencode($url));
-        header('Refresh: 0.5; URL=' . $url);
-        exit;
-    }
-    return;
+    if(!isset($_GET['e404_redirect'])) return;
+    
+    $url = $_GET['e404_redirect'];
+    $entities = array('%21', '%2A', '%27', '%28', '%29', '%3B', '%3A', '%40', '%26', '%3D', '%2B', '%24', '%2C', '%2F', '%3F', '%25', '%23', '%5B', '%5D');
+    $replacements = array('!', '*', "'", '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '%', '#', '[', ']');
+    $url = str_replace($entities, $replacements, urlencode($url));
+    header('Refresh: 0.5; URL=' . $url);
+    exit;
 }
 elseif($e->name=='OnPageNotFound'  && !isset($_SESSION['mgrValidated']))
 {
@@ -41,7 +39,8 @@ elseif($e->name=='OnPageNotFound'  && !isset($_SESSION['mgrValidated']))
     if($count_robots   == 'no')
     {
         $host_name = gethostbyaddr($_SERVER['REMOTE_ADDR']);
-        foreach(explode(',',$robots) as $robot)
+        $robots = explode(',',$robots);
+        foreach($robots as $robot)
         {
             if(strstr($host_name, $robot)!==false) return;
         }

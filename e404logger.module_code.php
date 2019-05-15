@@ -1,3 +1,4 @@
+<?php
 ///////////////////////////////////
 //
 //  Error 404 Logger
@@ -69,9 +70,9 @@ $grd->columns = "IP, host, time, URL";
 $grd->colTypes = ',,date:' . $modx->toDateFormat(null, 'formatOnly') . ' %H:%M:%S';
 $grd->colTypes .= ',template:<a href="[+url+]" target="_blank">[+url' . $urldecode . '+]</a>';
 
-$grd->fields = "ip,host,createdon,url";
+$grd->fields = 'ip,host,createdon,url';
 
-if ($showReferer == 'yes')
+if ($showReferer === 'yes')
 {
     $grd->columns  .= '/referer';
     $grd->colTypes .= '<br /><a href="' . $modx->config['site_url'] . 'index.php?e404_redirect=[+referer+]" target="_blank">[+referer' . $urldecode . '+]</a>';
@@ -101,9 +102,7 @@ $grd->pagerLocation = "top-left";
 
 $ph['showtop'] = $grd->render();
 
-$output = parse_tpl($src,$ph);
-
-return $output;
+return parse_tpl($src,$ph);
 
 
 
@@ -111,14 +110,14 @@ function get_tpl()
 {
     $tab = (isset($_GET['tab']) && !empty($_GET['tab'])) ? $_GET['tab'] : '';
     $tpl = <<< EOT
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" [+dir+] lang="[+mxla+]" xml:lang="[+mxla+]">
+<!DOCTYPE html>
+<html lang="[+lc+]">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=[+charset+]" />
 <link rel="stylesheet" href="[+site_url+]assets/modules/error404logger/e404logger.css" type="text/css" media="screen" />
 <link rel="stylesheet" type="text/css" href="[+theme_path+]/style.css" />
 <title>Error 404 Logger</title>
-<script type="text/javascript" language="javascript">
+<script>
     var  queryString = "?a=[+_GET_a+]&id=[+_GET_id+]";
     
     function navAllInactive()
@@ -201,18 +200,18 @@ EOT;
 
 function get_ph()
 {
-    global $modx,$modx_textdir,$modx_lang_attribute,$modx_manager_charset,$manager_theme,$_lang,$keepLastDays;
+    global $modx_textdir,$modx_lang_attribute,$modx_manager_charset,$manager_theme,$_lang,$keepLastDays;
     
-    $ph['dir'] = ($modx_textdir && $modx_textdir==='rtl') ? 'dir="rtl" ' : '';
-    $ph['mxla'] = $modx_lang_attribute ? $modx_lang_attribute : 'en';
-    $ph['charset'] = $modx_manager_charset;
-    $ph['site_url'] = MODX_SITE_URL;
-    $ph['theme_path'] = MODX_MANAGER_URL . 'media/style/' . $manager_theme;
-    $ph['_GET_a']  = $_GET['a'];
-    $ph['_GET_id'] = $_GET['id'];
+    $ph['dir']                 = ($modx_textdir && $modx_textdir==='rtl') ? 'dir="rtl" ' : '';
+    $ph['lc']                  = $modx_lang_attribute ? $modx_lang_attribute : 'en';
+    $ph['charset']             = $modx_manager_charset;
+    $ph['site_url']            = MODX_SITE_URL;
+    $ph['theme_path']          = MODX_MANAGER_URL . 'media/style/' . $manager_theme;
+    $ph['_GET_a']              = $_GET['a'];
+    $ph['_GET_id']             = $_GET['id'];
     $ph['_SERVER_SCRIPT_NAME'] = $_SERVER['SCRIPT_NAME'];
-    $ph['_lang_clear_log'] = $_lang['clear_log'];
-    $ph['keepLastDays'] = $keepLastDays;
+    $ph['_lang_clear_log']     = $_lang['clear_log'];
+    $ph['keepLastDays']        = $keepLastDays;
     return $ph;
 }
 

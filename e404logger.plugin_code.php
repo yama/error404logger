@@ -49,4 +49,4 @@ if($modx->event->name === 'OnPageNotFound'  && !isset($_SESSION['mgrValidated'])
     $e404 = new Error404Logger();
     $e404->insert($remoteIPIndexName);
     $e404->purge_log($limit,$trim);
-} else return;
+}

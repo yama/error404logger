@@ -5,7 +5,7 @@
  * Plugin logs requests that trigger an Page not found error.
  *
  * @category    plugin
- * @version     0.1
+ * @version     0.2
  * @license     http://www.gnu.org/copyleft/gpl.html GNU Public License (GPL)
  * @author      Andraz Kozelj (andraz dot kozelj at amis dot net) date created: 14.03.2007
  * @author      yama (http://kyms.jp)

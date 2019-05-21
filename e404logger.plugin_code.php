@@ -31,22 +31,24 @@ if ($modx->event->name === 'OnWebPageInit' && isset($_SESSION['mgrValidated'])) 
     exit;
 }
 
-if($modx->event->name === 'OnPageNotFound'  && !isset($_SESSION['mgrValidated'])) {
-    if($found_ref_only === 'yes' && empty($_SERVER['HTTP_REFERER'])) {
-        return;
-    }
-    if($count_robots === 'no') {
-        $robots = explode(',',$robots);
-        foreach($robots as $robot) {
-            if(strpos(
-                    gethostbyaddr($_SERVER['REMOTE_ADDR'])
-                    , $robot
-                ) !== false) return;
+if ($modx->event->name !== 'OnPageNotFound' || isset($_SESSION['mgrValidated'])) {
+    return;
+}
+
+if($found_ref_only === 'yes' && empty($_SERVER['HTTP_REFERER'])) {
+    return;
+}
+
+if($count_robots === 'no') {
+    $robots = explode(',',$robots);
+    foreach($robots as $robot) {
+        if(strpos(gethostbyaddr($_SERVER['REMOTE_ADDR']), $robot) !== false) {
+            return;
         }
     }
-
-    include_once(MODX_BASE_PATH . 'assets/modules/error404logger/e404logger.class.inc.php');
-    $e404 = new Error404Logger();
-    $e404->insert($remoteIPIndexName);
-    $e404->purge_log($limit,$trim);
 }
+
+include_once(MODX_BASE_PATH . 'assets/modules/error404logger/e404logger.class.inc.php');
+$e404 = new Error404Logger();
+$e404->insert($remoteIPIndexName);
+$e404->purge_log($limit,$trim);

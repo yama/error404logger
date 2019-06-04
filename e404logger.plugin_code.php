@@ -17,11 +17,21 @@
  */
 
 
-$found_ref_only = empty($found_ref_only) ? 'no' : $found_ref_only;
-$count_robots   = empty($count_robots) ? 'yes' : $count_robots;
-$robots         = empty($robots) ? 'googlebot,baidu,msnbot' : $robots;
-if(empty($limit)) $limit = 1000;
-if(empty($trim))  $trim = 100;
+if (empty($found_ref_only)) {
+    $found_ref_only = 'no';
+}
+if (empty($count_robots)) {
+    $count_robots = 'yes';
+}
+if (empty($robots)) {
+    $robots = 'googlebot,baidu,msnbot';
+}
+if(empty($limit)) {
+    $limit = 1000;
+}
+if(empty($trim)) {
+    $trim = 100;
+}
 
 if ($modx->event->name === 'OnWebPageInit' && isset($_SESSION['mgrValidated'])) {
     if(!isset($_GET['e404_redirect'])) return;

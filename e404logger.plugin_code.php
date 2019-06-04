@@ -11,7 +11,7 @@
  * @author      yama (http://kyms.jp)
  * @internal    @events        OnPageNotFound, OnWebPageInit
  * @internal    @modx_category Manager and Admin
- * @internal    @properties &found_ref_only=Found ref only;list;yes,no;yes &count_robots=Robots count;list;yes,no;no; &robots=Robots list;text;googlebot,baidu,msnbot;&limit=Number of limit logs;1000 &trim=Number deleted at a time;100 &remoteIPIndexName=RemoteIP Index Name;text;REMOTE_ADDR
+ * @internal    @properties &found_ref_only=Found ref only;list;yes,no;yes &count_robots=Robots count;list;yes,no;no; &robots=Robots list;text;googlebot,baidu,bing,crawl;&limit=Number of limit logs;1000 &trim=Number deleted at a time;100 &remoteIPIndexName=RemoteIP Index Name;text;REMOTE_ADDR
  * @global $modx
  * @global $remoteIPIndexName
  */

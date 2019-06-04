@@ -12,7 +12,7 @@ $resultsPerPage = isset($resultsPerPage) ? $resultsPerPage : 20;
 $showTop = isset($showTop) ? $showTop : 20;
 
 // load classes
-include_once(MODX_BASE_PATH . 'assets/modules/error404logger/e404logger.class.inc.php');
+include_once(__DIR__ . '/e404logger.class.inc.php');
 include_once(MODX_BASE_PATH . 'manager/includes/controls/datagrid.class.php');
 
 global $modx, $modx_manager_charset, $modx_lang_attribute, $modx_textdir, $manager_theme, $_style, $_lang;

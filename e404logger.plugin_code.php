@@ -12,7 +12,10 @@
  * @internal    @events        OnPageNotFound, OnWebPageInit
  * @internal    @modx_category Manager and Admin
  * @internal    @properties &found_ref_only=Found ref only;list;yes,no;yes &count_robots=Robots count;list;yes,no;no; &robots=Robots list;text;googlebot,baidu,msnbot;&limit=Number of limit logs;1000 &trim=Number deleted at a time;100 &remoteIPIndexName=RemoteIP Index Name;text;REMOTE_ADDR
+ * @global $modx
+ * @global $remoteIPIndexName
  */
+
 
 $found_ref_only = empty($found_ref_only) ? 'no' : $found_ref_only;
 $count_robots   = empty($count_robots) ? 'yes' : $count_robots;

@@ -55,11 +55,12 @@ public $tbl_error_404_logger;
 
         if ($metaData['referer'] == '')
         {
-            $sql = sprintf(
-                'ALTER TABLE %s ADD COLUMN `referer` varchar(200) NULL AFTER `host`'
-                , $this->tbl_error_404_logger
+            return $modx->db->query(
+                sprintf(
+                    'ALTER TABLE %s ADD COLUMN `referer` varchar(200) NULL AFTER `host`'
+                    , $this->tbl_error_404_logger
+                )
             );
-            return $modx->db->query($sql);
         }
         return false;
     }
@@ -161,10 +162,129 @@ public $tbl_error_404_logger;
             $row = $modx->db->getRow($rs);
         }
         $over = $row['count'] - $limit;
-        if($over > 0)
-        {
-            $modx->db->delete($this->tbl_error_404_logger,'', 'createdon ASC', $over + $trim);
-            $modx->db->query('OPTIMIZE TABLE ' . $this->tbl_error_404_logger);
+        if(!$over) {
+            return;
         }
+        $modx->db->delete($this->tbl_error_404_logger,'', 'createdon ASC', $over + $trim);
+        $modx->db->query('OPTIMIZE TABLE ' . $this->tbl_error_404_logger);
+    }
+
+    public function get_tpl()
+    {
+        $tab = (isset($_GET['tab']) && !empty($_GET['tab'])) ? $_GET['tab'] : '';
+        $tpl = <<< EOT
+<!DOCTYPE html>
+<html lang="[+lc+]">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=[+charset+]" />
+<link rel="stylesheet" href="[+site_url+]assets/modules/error404logger/e404logger.css" type="text/css" media="screen" />
+<link rel="stylesheet" type="text/css" href="[+theme_path+]/style.css" />
+<title>Error 404 Logger</title>
+<script>
+    var  queryString = "?a=[+_GET_a+]&id=[+_GET_id+]";
+    
+    function navAllInactive()
+    {
+        oNav = document.getElementById("nav");
+        oLis = oNav.getElementsByTagName("LI");
+        
+        for (i = 0; i < oLis.length; i++)
+        {
+            oLis[i].className = "";
+        }
+    }
+    
+    function hideAllData()
+    {
+        oData = document.getElementById("data");
+        oDivs = oData.getElementsByTagName("DIV");
+        
+    }
+    
+    function doRemove(url)
+    {
+        if (confirm("Really delete entries for '" + url + "'?"))
+        {
+            url = escape(url);
+            window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&tab=top&do=remove&url="+url;
+        }
+        return false;
+    }
+    
+    function clearAll()
+    {
+        if (confirm("Really delete ALL entries?"))
+        {
+            window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&do=clearAll";
+        }
+        return false;
+    }
+    
+    function clearLast(num)
+    {
+        if (confirm("Really delete all entries except for the last "+num+" days?"))
+        {
+            window.location = "[+_SERVER_SCRIPT_NAME+]"+queryString+"&do=clearLast&days="+num;
+        }
+        return false;
+    }
+</script>
+</head>
+<body>
+<h1>Error 404 Logger</h1>
+<div class="sectionBody">
+    <div id="actions">
+        <ul class="actionButtons">
+        <li onclick="clearAll();"><a href="#">[+_lang_clear_log+]</a></li>
+        <li onclick="clearLast([+keepLastDays+]);"><a href="#">[+_lang_clear_log+] recent [+keepLastDays+] days</a></li>
+        </ul>
+    </div>
+    <div class="tab-pane" id="pane1">
+    <script type="text/javascript" src="media/script/tabpane.js"></script>
+    <script type="text/javascript"> pane1 = new WebFXTabPane(document.getElementById("pane1"),false); </script>
+        <div class="tab-page" id="all">
+            <h2 class="tab">All entries</h2>
+            <script type="text/javascript">pane1.addTabPage(document.getElementById("all"));</script>
+            [+logs+]
+        </div>
+        <div class="tab-page" id="top">
+            <h2 class="tab">Most wanted</h2>
+            <script type="text/javascript">pane1.addTabPage(document.getElementById("top"));</script>
+            <div>[+showing+]</div>
+            [+showtop+]
+        </div>
+    </div>
+</div>
+</body>
+</html>
+EOT;
+        return $tpl;
+    }
+
+    function get_ph()
+    {
+        global $modx_textdir,$modx_lang_attribute,$modx_manager_charset,$manager_theme,$_lang,$keepLastDays;
+
+        $ph['dir']                 = ($modx_textdir && $modx_textdir==='rtl') ? 'dir="rtl" ' : '';
+        $ph['lc']                  = $modx_lang_attribute ? $modx_lang_attribute : 'en';
+        $ph['charset']             = $modx_manager_charset;
+        $ph['site_url']            = MODX_SITE_URL;
+        $ph['theme_path']          = MODX_MANAGER_URL . 'media/style/' . $manager_theme;
+        $ph['_GET_a']              = $_GET['a'];
+        $ph['_GET_id']             = $_GET['id'];
+        $ph['_SERVER_SCRIPT_NAME'] = $_SERVER['SCRIPT_NAME'];
+        $ph['_lang_clear_log']     = $_lang['clear_log'];
+        $ph['keepLastDays']        = $keepLastDays;
+        return $ph;
+    }
+
+    function parse_tpl($src,$ph)
+    {
+        foreach($ph as $k=>$v)
+        {
+            $k = '[+' . $k . '+]';
+            $src = str_replace($k,$v,$src);
+        }
+        return $src;
     }
 }

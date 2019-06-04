@@ -65,7 +65,7 @@ $grd->Class = 'page';
 $grd->columns = 'IP, host, time, URL';
 
 $grd->colTypes = ',,date:' . $modx->toDateFormat(null, 'formatOnly') . ' %H:%M:%S';
-$urldecode = (isset($modx->config['enable_phx']) && $modx->config['enable_phx']!=0) ? ':urldecode' : '';
+$urldecode = (isset($modx->config['enable_phx']) && $modx->config['enable_phx']!=0) ? ':urldecode:escape' : '';
 $grd->colTypes .= ',template:<a href="[+url+]" target="_blank">[+url' . $urldecode . '+]</a>';
 
 $grd->fields = 'ip,host,createdon,url';

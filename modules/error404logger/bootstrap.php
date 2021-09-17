@@ -1,39 +1,27 @@
 <?php
-global $keepLastDays;
-
-if(!isset($showReferer))    $showReferer    = 'yes';
-if(!isset($keepLastDays))   $keepLastDays   = 7;
-if(!isset($resultsPerPage)) $resultsPerPage = 20;
-if(!isset($showTop))        $showTop        = 20;
-
-// load classes
 include_once(__DIR__ . '/helpers.php');
 include_once(__DIR__ . '/e404logger.class.inc.php');
-include_once(MODX_CORE_PATH . 'controls/datagrid.class.php');
-
-global $modx, $modx_manager_charset, $modx_lang_attribute, $modx_textdir, $manager_theme, $_style, $_lang;
 
 $e404 = new Error404Logger();
-$ph = $e404->get_ph();
 
-// check if there is something to do
-switch(input_get('do')) {
-    case 'remove'   : // remove single URL from list
-        if(input_get('url')) {
-            $e404->remove(input_get('url'));
-        }
-        break;
-    case 'clearAll' : // clear all data
-        $e404->remove();
-        break;
-    case 'clearLast': // clear data except for last N days
-        if(input_get('days')){
-            $e404->clearLast(input_get('days'));
-        }
+$i = getv('do');
+if ($i === 'remove' && getv('url')) {
+    return $e404->remove(getv('url'));
+}
+if ($i === 'clearAll') { // clear all data
+    return $e404->remove();
+}
+if ($i === 'clearLast' && getv('days')) { // clear data except for last N days
+    return $e404->clearLast(getv('days',7));
 }
 
+global $modx, $modx_manager_charset, $modx_lang_attribute, $modx_textdir, $manager_theme, $_style, $_lang;
+include_once(MODX_CORE_PATH . 'controls/datagrid.class.php');
+
+$ph = $e404->get_ph();
+
 // create grid with all data
-$grd = new DataGrid('', $e404->getAll(), $resultsPerPage);
+$grd = new DataGrid('', $e404->getAll(), array_get(event()->params,'resultsPerPage',20));
 $grd->noRecordMsg       = 'There are no Error 404 entries! Good for you...';
 $grd->cssClass          = 'grid';
 $grd->columnHeaderClass = 'gridHeader';
@@ -42,40 +30,47 @@ $grd->altItemClass      = 'gridAltItem';
 $grd->pagerClass        = 'pager';
 $grd->Class             = 'page';
 $grd->columns           = 'IP, host, time, URL';
-
-$grd->colTypes = ',,date:' . $modx->toDateFormat(null, 'formatOnly') . ' %H:%M:%S';
-$urldecode = (isset($modx->config['enable_phx']) && $modx->config['enable_phx']!=0) ? ':urldecode:escape' : '';
-$grd->colTypes .= ',template:<a href="[+url+]" target="_blank">[+url' . $urldecode . '+]</a>';
-
 $grd->fields = 'ip,host,createdon,url';
-
-if ($showReferer === 'yes') {
-    $grd->columns  .= '/referer';
-    $grd->colTypes .= '<br /><a href="' . $modx->config['site_url'] . 'index.php?e404_redirect=[+referer+]" target="_blank">[+referer' . $urldecode . '+]</a>';
+$urldecode = array_get($modx->config, 'enable_phx') ? ':urldecode:escape' : '';
+$grd->colTypes = sprintf(
+    ',,date:%s %%H:%%M:%%S,template:<a href="[+url+]" target="_blank">[+url%s+]</a>'
+    , $modx->toDateFormat(null, 'formatOnly')
+    , $urldecode
+);
+if (array_get(event()->params,'showReferer','yes') === 'yes') {
+    $grd->columns .= '/referer';
+    $grd->colTypes .= sprintf(
+        '<br /><a href="%sindex.php?e404_redirect=[+referer+]" target="_blank">[+referer%s+]</a>'
+        , MODX_SITE_URL
+        , $urldecode
+    );
 }
-
 $grd->pagerLocation = 'top-left';
 
 $ph['logs'] = $grd->render();
 
 // create most wanted grid
-$howMany = $showTop == 0 ? 99999 : $showTop;
+if (array_get(event()->params, 'showTop', 20)<10000) {
+    $ph['showing'] = sprintf('<p>Showing top %s</p>', array_get(event()->params, 'showTop'));
+} else {
+    $ph['showing'] = '<p>Showing all</p>';
+}
 
-$ph['showing'] = ($showTop != 0) ? "<p>Showing top {$howMany}</p>" : '<p>Showing all</p>';
-
-$res = $e404->getTop($showTop);
-$grd = new DataGrid('', $res, $howMany);
+$grd = new DataGrid(
+    ''
+    , $e404->getTop(array_get(event()->params,'showTop',20))
+    , array_get(event()->params, 'showTop', 20)
+);
 
 $grd->noRecordMsg       = 'There are no Error 404 entries! Good for you...';
-$grd->cssClass          = "grid";
-$grd->columnHeaderClass = "gridHeader";
-$grd->itemClass         = "gridItem";
-$grd->altItemClass      = "gridAltItem";
-$grd->columns           = ",count,URL";
+$grd->cssClass          = 'grid';
+$grd->columnHeaderClass = 'gridHeader';
+$grd->itemClass         = 'gridItem';
+$grd->altItemClass      = 'gridAltItem';
+$grd->columns           = ',count,URL';
 $grd->colTypes          = 'template:<a class="red" href="#" onclick="doRemove(\'[+url+]\'); return false;">Remove</a>,integer,template:[+url' . $urldecode . '+]';
-$grd->fields            = "template,num,url";
-$grd->pagerLocation = "top-left";
-
+$grd->fields            = 'template,num,url';
+$grd->pagerLocation = 'top-left';
 $ph['showtop'] = $grd->render();
 
 return $modx->parseText(

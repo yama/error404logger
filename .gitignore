@@ -1,0 +1,16 @@
+# general
+.project
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+
+#PhpStorm
+.idea

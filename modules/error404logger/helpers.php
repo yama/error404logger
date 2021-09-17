@@ -13,8 +13,15 @@ if(!function_exists('db')) {
     }
 }
 
-if(!function_exists('input_get')) {
-    function input_get($key,$default=null) {
+if(!function_exists('event')) {
+    function event() {
+        global $modx;
+        return $modx->event;
+    }
+}
+
+if(!function_exists('getv')) {
+    function getv($key,$default=null) {
         if(!isset($_GET[$key])) {
             return $default;
         }
@@ -22,11 +29,29 @@ if(!function_exists('input_get')) {
     }
 }
 
-if(!function_exists('server_var')) {
-    function server_var($key,$default=null) {
+if(!function_exists('serverv')) {
+    function serverv($key,$default=null) {
         if(!isset($_SERVER[$key])) {
             return $default;
         }
         return $_SERVER[$key];
+    }
+}
+
+if(!function_exists('globalv')) {
+    function globalv($key,$default=null) {
+        if(!isset($GLOBALS[$key])) {
+            return $default;
+        }
+        return $GLOBALS[$key];
+    }
+}
+
+if(!function_exists('array_get')) {
+    function array_get($array,$key,$default=null) {
+        if(!isset($array[$key])) {
+            return $default;
+        }
+        return $array[$key];
     }
 }

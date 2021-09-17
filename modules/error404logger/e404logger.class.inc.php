@@ -17,11 +17,11 @@ class Error404Logger {
         $this->checkTable();
     }
     
-    // get top N queries for nonexistent pages
     public function getTop($num = null) {
         $sql = sprintf(
             'SELECT distinct(url), count(url) AS num FROM %s GROUP BY url ORDER BY num DESC'
-            , evo()->getFullTableName('error_404_logger'));
+            , evo()->getFullTableName('error_404_logger')
+        );
         if ($num) {
             $sql .= ' LIMIT ' . $num;
         };
@@ -40,18 +40,17 @@ class Error404Logger {
     
     // add 404 query
     public function insert($remoteIPIndexName='') {
-        if($remoteIPIndexName && server_var($remoteIPIndexName))
-        {  //For multi stairs proxy
-            $ip = preg_replace('/.*[, ]([^, ]+)\z/','$1', server_var($remoteIPIndexName));
-        }else{
-            $ip = server_var('REMOTE_ADDR');
+        if($remoteIPIndexName && serverv($remoteIPIndexName)) {
+            $ip = preg_replace('/.*[, ]([^, ]+)\z/','$1', serverv($remoteIPIndexName));
+        } else {
+            $ip = serverv('REMOTE_ADDR');
         }
         return db()->insert(
             array(
-                'url'       => db()->escape($this->fix_xss_value(server_var('REQUEST_URI'))),
+                'url'       => db()->escape($this->fix_xss_value(serverv('REQUEST_URI'))),
                 'ip'        => $ip,
                 'host'      => gethostbyaddr($ip),
-                'referer'   => db()->escape($this->fix_xss_value(server_var('HTTP_REFERER'))),
+                'referer'   => db()->escape($this->fix_xss_value(serverv('HTTP_REFERER'))),
                 'createdon' => date('Y-m-d H:i:s')
             )
             , evo()->getFullTableName('error_404_logger')
@@ -60,11 +59,14 @@ class Error404Logger {
     
     // remove specific url from entries
     public function remove($url=null) {
-        db()->delete(
-            evo()->getFullTableName('error_404_logger')
-            , ($url ? sprintf("url='%s'", urldecode($url)) : '')
-        );
-        return db()->getAffectedRows();
+        if($url) {
+            db()->delete(
+                evo()->getFullTableName('error_404_logger')
+                , sprintf("url='%s'", urldecode($url))
+            );
+            return db()->getAffectedRows();
+        }
+        return db()->truncate(evo()->getFullTableName('error_404_logger'));
     }
     
     public function clearLast($num) {
@@ -111,23 +113,22 @@ class Error404Logger {
     }
 
     public function get_ph() {
-        global $modx_textdir,$modx_lang_attribute,$modx_manager_charset,$manager_theme,$_lang,$keepLastDays;
-
-        $ph['dir']                 = ($modx_textdir && $modx_textdir==='rtl') ? 'dir="rtl" ' : '';
-        $ph['lc']                  = $modx_lang_attribute ? $modx_lang_attribute : 'en';
-        $ph['charset']             = $modx_manager_charset;
-        $ph['site_url']            = MODX_SITE_URL;
-        $ph['theme_path']          = MODX_MANAGER_URL . 'media/style/' . $manager_theme;
-        $ph['_GET_a']              = input_get('a');
-        $ph['_GET_id']             = input_get('id');
-        $ph['_SERVER_SCRIPT_NAME'] = server_var('SCRIPT_NAME');
-        $ph['_lang_clear_log']     = $_lang['clear_log'];
-        $ph['keepLastDays']        = $keepLastDays;
-        return $ph;
+        return array(
+            'dir'                 => (globalv('modx_textdir')==='rtl') ? 'dir="rtl" ' : '',
+            'lc'                  => globalv('modx_lang_attribute','en'),
+            'charset'             => globalv('modx_manager_charset','utf-8'),
+            'site_url'            => MODX_SITE_URL,
+            'theme_path'          => MODX_MANAGER_URL . 'media/style/' . globalv('manager_theme'),
+            '_GET_a'              => getv('a'),
+            '_GET_id'             => getv('id'),
+            '_SERVER_SCRIPT_NAME' => serverv('SCRIPT_NAME'),
+            '_lang_clear_log'     => array_get(globalv('_lang',array()),'clear_log'),
+            'keepLastDays'        => globalv('keepLastDays',7)
+        );
     }
 
     function table_exists($table_name) {
-        return db()->getRecordCount(
+        return db()->count(
             db()->query(
                 sprintf(
                     "SHOW TABLES LIKE '%s'"

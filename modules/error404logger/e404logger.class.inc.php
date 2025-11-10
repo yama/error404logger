@@ -70,8 +70,7 @@ class Error404Logger {
             '*'
             , $table
             , ''
-            , 'createdon'
-            , 'DESC'
+            , 'createdon DESC'
         );
     }
     

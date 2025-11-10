@@ -13,14 +13,45 @@
 
 class Error404Logger {
 
+    /** @var string */
+    protected $tableName = '';
+
     public function __construct() {
+        $this->tableName = $this->resolveTableName();
         $this->checkTable();
+    }
+
+    protected function resolveTableName() {
+        $tableName = evo()->getFullTableName('error_404_logger');
+        if (!empty($tableName)) {
+            return $tableName;
+        }
+
+        $prefix = array_get(evo()->config, 'table_prefix', '');
+        if ($prefix === '') {
+            return '';
+        }
+
+        return $prefix . 'error_404_logger';
+    }
+
+    protected function getTableName() {
+        if (empty($this->tableName)) {
+            $this->tableName = $this->resolveTableName();
+        }
+
+        return $this->tableName;
     }
     
     public function getTop($num = null) {
+        $table = $this->getTableName();
+        if ($table === '') {
+            return false;
+        }
+
         $sql = sprintf(
             'SELECT distinct(url), count(url) AS num FROM %s GROUP BY url ORDER BY num DESC'
-            , evo()->getFullTableName('error_404_logger')
+            , $table
         );
         if ($num) {
             $sql .= ' LIMIT ' . $num;
@@ -30,11 +61,17 @@ class Error404Logger {
     
     // get all results
     public function getAll() {
+        $table = $this->getTableName();
+        if ($table === '') {
+            return false;
+        }
+
         return db()->select(
             '*'
-            , evo()->getFullTableName('error_404_logger')
+            , $table
             , ''
-            , 'createdon DESC'
+            , 'createdon'
+            , 'DESC'
         );
     }
     
@@ -45,6 +82,12 @@ class Error404Logger {
         } else {
             $ip = serverv('REMOTE_ADDR');
         }
+
+        $table = $this->getTableName();
+        if ($table === '') {
+            return false;
+        }
+
         return db()->insert(
             array(
                 'url'       => db()->escape($this->fix_xss_value(serverv('REQUEST_URI'))),
@@ -53,25 +96,40 @@ class Error404Logger {
                 'referer'   => db()->escape($this->fix_xss_value(serverv('HTTP_REFERER'))),
                 'createdon' => date('Y-m-d H:i:s')
             )
-            , evo()->getFullTableName('error_404_logger')
+            , $table
         );
     }
     
     // remove specific url from entries
     public function remove($url=null) {
         if($url) {
+            $table = $this->getTableName();
+            if ($table === '') {
+                return 0;
+            }
+
             db()->delete(
-                evo()->getFullTableName('error_404_logger')
+                $table
                 , sprintf("url='%s'", urldecode($url))
             );
             return db()->getAffectedRows();
         }
-        return db()->truncate(evo()->getFullTableName('error_404_logger'));
+        $table = $this->getTableName();
+        if ($table === '') {
+            return 0;
+        }
+
+        return db()->truncate($table);
     }
     
     public function clearLast($num) {
+        $table = $this->getTableName();
+        if ($table === '') {
+            return 0;
+        }
+
         db()->delete(
-            evo()->getFullTableName('error_404_logger')
+            $table
             , sprintf(
                 'UNIX_TIMESTAMP(createdon) < %s'
                 , (time() - $num * 3600 * 24)
@@ -93,7 +151,12 @@ class Error404Logger {
             $trim = $limit;
         }
         
-        $rs = db()->select('COUNT(id) as count', evo()->getFullTableName('error_404_logger'));
+        $table = $this->getTableName();
+        if ($table === '') {
+            return;
+        }
+
+        $rs = db()->select('COUNT(id) as count', $table);
         if($rs) {
             $row = db()->getRow($rs);
         }
@@ -102,12 +165,12 @@ class Error404Logger {
             return;
         }
         db()->delete(
-            evo()->getFullTableName('error_404_logger')
+            $table
             , ''
             , 'createdon ASC', $over + $trim
         );
         db()->query(
-            sprintf("OPTIMIZE TABLE %s", evo()->getFullTableName('error_404_logger')
+            sprintf("OPTIMIZE TABLE %s", $table
             )
         );
     }
@@ -127,12 +190,27 @@ class Error404Logger {
         );
     }
 
+    protected function normalizeTableNameForLike($tableName) {
+        $tableName = trim($tableName, '`');
+        if (strpos($tableName, '`.`') !== false) {
+            $tableName = substr($tableName, strpos($tableName, '`.`') + 3);
+            $tableName = trim($tableName, '`');
+        } elseif (strpos($tableName, '.') !== false) {
+            $parts = explode('.', $tableName);
+            $tableName = trim(end($parts), '`');
+        }
+
+        return $tableName;
+    }
+
     function table_exists($table_name) {
+        $tableLike = $this->normalizeTableNameForLike($table_name);
+
         return db()->count(
             db()->query(
                 sprintf(
                     "SHOW TABLES LIKE '%s'"
-                    , $table_name
+                    , $tableLike
                 )
             )
         );
@@ -140,6 +218,11 @@ class Error404Logger {
 
     // create table
     public function createTable() {
+        $table = $this->getTableName();
+        if ($table === '') {
+            return false;
+        }
+
         return db()->query(sprintf(
             'CREATE TABLE IF NOT EXISTS %s (
                 `id` int(10) unsigned NOT NULL auto_increment,
@@ -150,23 +233,28 @@ class Error404Logger {
                 `referer` varchar(200) NOT NULL,
                 PRIMARY KEY  (`id`)
                 ) ENGINE=MyISAM AUTO_INCREMENT=1 ;'
-            , evo()->getFullTableName('error_404_logger')
+            , $table
         ));
     }
     
     // check if table exists and update version
     public function checkTable() {
-        if(!$this->table_exists(evo()->getFullTableName('error_404_logger'))) {
+        $table = $this->getTableName();
+        if ($table === '') {
+            return;
+        }
+
+        if(!$this->table_exists($table)) {
             $this->createTable();
         }
-        $metaData = db()->getTableMetaData(evo()->getFullTableName('error_404_logger'));
+        $metaData = db()->getTableMetaData($table);
         if ($metaData['referer']) {
             return;
         }
         db()->query(
             sprintf(
                 'ALTER TABLE %s ADD COLUMN `referer` varchar(200) NULL AFTER `host`'
-                , evo()->getFullTableName('error_404_logger')
+                , $table
             )
         );
     }

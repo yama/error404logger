@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Error 404 Logger
  *
@@ -17,7 +18,7 @@
  */
 
 $e404logger_dir = 'assets/modules/error404logger/';
-include_once(MODX_BASE_PATH . $e404logger_dir.'helpers.php');
+include_once(MODX_BASE_PATH . $e404logger_dir . 'helpers.php');
 
 if (isset($_SESSION['mgrValidated'])) {
     if (event()->name !== 'OnWebPageInit' || !getv('e404_redirect')) {
@@ -30,18 +31,18 @@ if (isset($_SESSION['mgrValidated'])) {
 if (event()->name !== 'OnPageNotFound') {
     return;
 }
-if(array_get(event()->params, 'found_ref_only') === 'yes' && !serverv('HTTP_REFERER')) {
+if (array_get(event()->params, 'found_ref_only') === 'yes' && !serverv('HTTP_REFERER')) {
     return;
 }
 
-if(array_get(event()->params,'count_robots') === 'no') {
+if (array_get(event()->params, 'count_robots') === 'no') {
     $robots = explode(
-        ','
-        , array_get(event()->params,'robots', 'googlebot,baidu,msnbot')
+        ',',
+        array_get(event()->params, 'robots', 'googlebot,baidu,msnbot')
     );
     $host_name = gethostbyaddr(serverv('REMOTE_ADDR'));
-    foreach($robots as $robot) {
-        if(strpos($host_name, $robot) !== false) {
+    foreach ($robots as $robot) {
+        if (strpos($host_name, $robot) !== false) {
             return;
         }
     }
@@ -51,6 +52,6 @@ include_once(MODX_BASE_PATH . $e404logger_dir . 'e404logger.class.inc.php');
 $e404 = new Error404Logger();
 $e404->insert($remoteIPIndexName);
 $e404->purge_log(
-    array_get(event()->params, 'limit', 1000)
-    , array_get(event()->params, 'trim', 100)
+    array_get(event()->params, 'limit', 1000),
+    array_get(event()->params, 'trim', 100)
 );

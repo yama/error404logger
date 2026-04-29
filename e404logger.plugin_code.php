@@ -50,7 +50,7 @@ if (array_get(event()->params, 'count_robots') === 'no') {
 
 include_once(MODX_BASE_PATH . $e404logger_dir . 'e404logger.class.inc.php');
 $e404 = new Error404Logger();
-$e404->insert($remoteIPIndexName);
+$e404->insert(array_get(event()->params, 'remoteIPIndexName', 'REMOTE_ADDR'));
 $e404->purge_log(
     array_get(event()->params, 'limit', 1000),
     array_get(event()->params, 'trim', 100)

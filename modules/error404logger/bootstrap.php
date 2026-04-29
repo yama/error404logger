@@ -12,7 +12,7 @@ if ($i === 'clearAll') { // clear all data
     return $e404->remove();
 }
 if ($i === 'clearLast' && getv('days')) { // clear data except for last N days
-    return $e404->clearLast(getv('days',7));
+    return $e404->clearLast(getv('days', 7));
 }
 
 global $modx, $modx_manager_charset, $modx_lang_attribute, $modx_textdir, $manager_theme, $_style, $_lang;
@@ -33,16 +33,16 @@ $grd->columns           = 'IP, host, time, URL';
 $grd->fields = 'ip,host,createdon,url';
 $urldecode = ($modx->config['enable_phx'] ?? null) ? ':urldecode:escape' : '';
 $grd->colTypes = sprintf(
-    ',,date:%s %%H:%%M:%%S,template:<a href="[+url+]" target="_blank">[+url%s+]</a>'
-    , $modx->toDateFormat(null, 'formatOnly')
-    , $urldecode
+    ',,date:%s %%H:%%M:%%S,template:<a href="[+url+]" target="_blank">[+url%s+]</a>',
+    $modx->toDateFormat(null, 'formatOnly'),
+    $urldecode
 );
 if (event()->param('showReferer', 'yes') === 'yes') {
     $grd->columns .= '/referer';
     $grd->colTypes .= sprintf(
-        '<br /><a href="%sindex.php?e404_redirect=[+referer+]" target="_blank">[+referer%s+]</a>'
-        , MODX_SITE_URL
-        , $urldecode
+        '<br /><a href="%sindex.php?e404_redirect=[+referer+]" target="_blank">[+referer%s+]</a>',
+        MODX_SITE_URL,
+        $urldecode
     );
 }
 $grd->pagerLocation = 'top-left';
@@ -51,16 +51,14 @@ $ph['logs'] = $grd->render();
 
 // create most wanted grid
 $showTop = event()->param('showTop', 20);
-if ($showTop < 10000) {
-    $ph['showing'] = sprintf('<p>Showing top %s</p>', $showTop);
-} else {
-    $ph['showing'] = '<p>Showing all</p>';
-}
+$ph['showing'] = $showTop < 10000
+    ? sprintf('<p>Showing top %s</p>', $showTop)
+    : '<p>Showing all</p>';
 
 $grd = new DataGrid(
-    ''
-    , $e404->getTop($showTop)
-    , $showTop
+    '',
+    $e404->getTop($showTop),
+    $showTop
 );
 
 $grd->noRecordMsg       = 'There are no Error 404 entries! Good for you...';
@@ -75,6 +73,6 @@ $grd->pagerLocation = 'top-left';
 $ph['showtop'] = $grd->render();
 
 return $modx->parseText(
-    file_get_contents(__DIR__ . '/template.tpl')
-    , $ph
+    file_get_contents(__DIR__ . '/template.tpl'),
+    $ph
 );

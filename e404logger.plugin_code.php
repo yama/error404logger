@@ -31,14 +31,14 @@ if (isset($_SESSION['mgrValidated'])) {
 if (event()->name !== 'OnPageNotFound') {
     return;
 }
-if (array_get(event()->params, 'found_ref_only') === 'yes' && !serverv('HTTP_REFERER')) {
+if (event()->param('found_ref_only') === 'yes' && !serverv('HTTP_REFERER')) {
     return;
 }
 
-if (array_get(event()->params, 'count_robots') === 'no') {
+if (event()->param('count_robots') === 'no') {
     $robots = explode(
         ',',
-        array_get(event()->params, 'robots', 'googlebot,baidu,msnbot')
+        event()->param('robots', 'googlebot,baidu,msnbot')
     );
     $host_name = gethostbyaddr(serverv('REMOTE_ADDR'));
     foreach ($robots as $robot) {
@@ -50,8 +50,8 @@ if (array_get(event()->params, 'count_robots') === 'no') {
 
 include_once(MODX_BASE_PATH . $e404logger_dir . 'e404logger.class.inc.php');
 $e404 = new Error404Logger();
-$e404->insert(array_get(event()->params, 'remoteIPIndexName', 'REMOTE_ADDR'));
+$e404->insert(event()->param('remoteIPIndexName', 'REMOTE_ADDR'));
 $e404->purge_log(
-    array_get(event()->params, 'limit', 1000),
-    array_get(event()->params, 'trim', 100)
+    event()->param('limit', 1000),
+    event()->param('trim', 100)
 );

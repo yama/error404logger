@@ -30,7 +30,7 @@ class Error404Logger
             return $tableName;
         }
 
-        $prefix = array_get(evo()->config, 'table_prefix', '');
+        $prefix = evo()->config['table_prefix'] ?? '';
         if ($prefix === '') {
             return '';
         }
@@ -174,6 +174,7 @@ class Error404Logger
         if (!$over) {
             return;
         }
+
         db()->delete(
             $table,
             '',
@@ -199,7 +200,7 @@ class Error404Logger
             '_GET_a'              => getv('a'),
             '_GET_id'             => getv('id'),
             '_SERVER_SCRIPT_NAME' => serverv('SCRIPT_NAME'),
-            '_lang_clear_log'     => array_get(globalv('_lang', array()), 'clear_log'),
+            '_lang_clear_log'     => (globalv('_lang', array()))['clear_log'] ?? null,
             'keepLastDays'        => globalv('keepLastDays', 7)
         );
     }

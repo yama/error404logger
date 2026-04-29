@@ -21,7 +21,7 @@ include_once(MODX_CORE_PATH . 'controls/datagrid.class.php');
 $ph = $e404->get_ph();
 
 // create grid with all data
-$grd = new DataGrid('', $e404->getAll(), array_get(event()->params,'resultsPerPage',20));
+$grd = new DataGrid('', $e404->getAll(), event()->param('resultsPerPage', 20));
 $grd->noRecordMsg       = 'There are no Error 404 entries! Good for you...';
 $grd->cssClass          = 'grid';
 $grd->columnHeaderClass = 'gridHeader';
@@ -31,13 +31,13 @@ $grd->pagerClass        = 'pager';
 $grd->Class             = 'page';
 $grd->columns           = 'IP, host, time, URL';
 $grd->fields = 'ip,host,createdon,url';
-$urldecode = array_get($modx->config, 'enable_phx') ? ':urldecode:escape' : '';
+$urldecode = ($modx->config['enable_phx'] ?? null) ? ':urldecode:escape' : '';
 $grd->colTypes = sprintf(
     ',,date:%s %%H:%%M:%%S,template:<a href="[+url+]" target="_blank">[+url%s+]</a>'
     , $modx->toDateFormat(null, 'formatOnly')
     , $urldecode
 );
-if (array_get(event()->params,'showReferer','yes') === 'yes') {
+if (event()->param('showReferer', 'yes') === 'yes') {
     $grd->columns .= '/referer';
     $grd->colTypes .= sprintf(
         '<br /><a href="%sindex.php?e404_redirect=[+referer+]" target="_blank">[+referer%s+]</a>'
@@ -50,16 +50,17 @@ $grd->pagerLocation = 'top-left';
 $ph['logs'] = $grd->render();
 
 // create most wanted grid
-if (array_get(event()->params, 'showTop', 20)<10000) {
-    $ph['showing'] = sprintf('<p>Showing top %s</p>', array_get(event()->params, 'showTop'));
+$showTop = event()->param('showTop', 20);
+if ($showTop < 10000) {
+    $ph['showing'] = sprintf('<p>Showing top %s</p>', $showTop);
 } else {
     $ph['showing'] = '<p>Showing all</p>';
 }
 
 $grd = new DataGrid(
     ''
-    , $e404->getTop(array_get(event()->params,'showTop',20))
-    , array_get(event()->params, 'showTop', 20)
+    , $e404->getTop($showTop)
+    , $showTop
 );
 
 $grd->noRecordMsg       = 'There are no Error 404 entries! Good for you...';

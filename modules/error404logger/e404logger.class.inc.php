@@ -157,6 +157,8 @@ class Error404Logger
 
     public function purge_log($limit = 1000, $trim = 100)
     {
+        $limit = max(0, (int) $limit);
+        $trim = max(0, (int) $trim);
         if ($limit < $trim) {
             $trim = $limit;
         }
@@ -167,11 +169,13 @@ class Error404Logger
         }
 
         $rs = db()->select('COUNT(id) as count', $table);
-        if ($rs) {
-            $row = db()->getRow($rs);
+        if (!$rs) {
+            return;
         }
-        $over = $row['count'] - $limit;
-        if (!$over) {
+
+        $row = db()->getRow($rs);
+        $over = (int) $row['count'] - $limit;
+        if ($over <= 0) {
             return;
         }
 
